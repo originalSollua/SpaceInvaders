@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.awt.event.KeyEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
+import java.awt.Toolkit;
 // this is the game manager. it will be responcible for maintaining the window.
 // a new game will be constructed so that it builds the playing space on invocation of
 // a new gameManager object.
@@ -77,6 +77,10 @@ public class gameManager extends Canvas{
 		// visiblify the wondow
 		container.pack();
 		container.setResizable(false);
+		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+		container.setLocation((int)(d.width/2 - container.getSize().getWidth()/2),
+					(int)(d.height/2 - container.getSize().getHeight()/2));
+
 		container.setVisible(true);
 		
 		// enable wiondow closing
