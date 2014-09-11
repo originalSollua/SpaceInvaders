@@ -44,8 +44,10 @@ public class gameManager extends Canvas{
 	private long fireRate = 500;
 	// number of things to slay
 	private int foeCount;
-	
+	private boolean side = false;
 	private String message = "";
+	private int Score = 0;
+	
 	private boolean waitingOnKeyPress = true;
 	// control trackers?
 	private boolean leftKeyPressed = false;
@@ -150,6 +152,7 @@ public class gameManager extends Canvas{
 		
 	public void notifyAlienKilled(){
 		foeCount--;
+		Score++;
 		if(foeCount <=0){
 			notifyWin();
 		}
@@ -164,13 +167,34 @@ public class gameManager extends Canvas{
 		
 	// attempt to have the palyer fire a shot. modify this to be based off weapon type later
 	public void tryToFire(){
-		// check that fier CD is exhausted
-		if(System.currentTimeMillis() - lastFire < fireRate){
-			return;
+		if(Score < 5){
+			// check that fier CD is exhausted
+			if(System.currentTimeMillis() - lastFire < fireRate){
+				return;
+			}
+			lastFire = System.currentTimeMillis();
+			ShotEntity shot = new ShotEntity(this, "sprites/shot.gif", ship.getX()+10, ship.getY()-30);
+			
+			entities.add(shot);
 		}
-		lastFire = System.currentTimeMillis();
-		ShotEntity shot = new ShotEntity(this, "sprites/shot.gif", ship.getX()+10, ship.getY()-30);
-		entities.add(shot);
+		else{
+			// check double shot times
+			if((System.currentTimeMillis() - lastFire)*2 < fireRate){
+				return;
+			}
+			ShotEntity shot;
+			lastFire = System.currentTimeMillis();
+			if(side){
+				side = false;
+				shot = new ShotEntity(this, "sprites/shot.gif", ship.getX()+20, ship.getY()-30);
+			}
+			else{
+				side = true;
+				shot = new ShotEntity(this, "sprites/shot.gif", ship.getX(), ship.getY()-30);
+			}
+			entities.add(shot);
+		}
+
 	}
 		
 	// primary game loop
@@ -186,7 +210,11 @@ public class gameManager extends Canvas{
 			// change to reflect the type of background?
 			g.setColor(Color.black);
 			g.fillRect(0,0,800,600);
-				
+			
+
+			// adding score display here
+			g.setColor(Color.orange);
+			g.drawString("Score: "+Score,400-g.getFontMetrics().stringWidth(message)/2, 40);	
 			// move the things
 			if(!waitingOnKeyPress){
 				for(int i = 0; i < entities.size(); i++){
