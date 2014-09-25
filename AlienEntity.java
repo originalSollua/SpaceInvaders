@@ -1,11 +1,17 @@
+import java.util.Random;
 public class AlienEntity extends Entity{
 	private double movespeed = 75;
 	private gameManager game;
-	
-	public AlienEntity(gameManager g, String ref, int x, int y){
+	public long fireRate;
+	private long fireCof;
+	public long previousFire;	
+	public AlienEntity(gameManager g, String ref, int x, int y, int cof){
 		super(ref,(double)x, (double)y);
 		this.game = g;
 		dx = -movespeed;
+		fireCof = cof;
+		fireRate = 100;
+		previousFire = System.currentTimeMillis();
 	}
 	
 	public void move(long delta){
@@ -23,6 +29,16 @@ public class AlienEntity extends Entity{
 		y += 10;
 		if(y >570){
 			game.notifyDeath();
+		}
+	}
+	public boolean canFire(long time){
+		long fire = fireRate*fireCof;
+		fireCof = fireCof -new Random().nextInt(100);
+		if(time - previousFire < fire){
+			return false;
+		}
+		else{
+			return true;
 		}
 	}
 	

@@ -2,6 +2,7 @@ public class ShipEntity extends Entity{
 	// game is here so that the entity knows data about the state
 	// of the game, i think
 	private gameManager game;
+	public int shields = 100;
 	
 	public ShipEntity(gameManager g, String ref, int x, int y){	
 		super(ref, (double)x,(double)y);
@@ -27,6 +28,11 @@ public class ShipEntity extends Entity{
 			//dead
 			// make aliens shoot, so need to expand this to include shot
 			game.notifyDeath();
+		}
+		if(other instanceof AlienBeam){
+			if(shields <= 0){
+				game.notifyDeath();
+			}
 		}
 	}
 }

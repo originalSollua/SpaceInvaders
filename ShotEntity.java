@@ -4,9 +4,9 @@ public class ShotEntity extends Entity{
 	private double movespeed = -300;
 	private gameManager game;
 	private boolean hit = false;
-	
-	public ShotEntity(gameManager g, String sprite, double x, double y){
-		super(sprite, x, y);
+
+	public ShotEntity(gameManager g, double x, double y){
+		super("sprites/shot.gif", x, y);
 		this.game = g;
 		dy = movespeed;
 	}

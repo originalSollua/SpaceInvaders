@@ -13,6 +13,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.Toolkit;
+import java.util.HashMap;
+import java.util.Random;
 // this is the game manager. it will be responcible for maintaining the window.
 // a new game will be constructed so that it builds the playing space on invocation of
 // a new gameManager object.
@@ -41,13 +43,14 @@ public class gameManager extends Canvas{
 	private Entity ship;
 	private double moveSpeed = 300;
 	private long lastFire = 0;
-	private long fireRate = 500;
+	private long equipedFireRate = 500;
 	// number of things to slay
 	private int foeCount;
-	private boolean side = false;
+	private boolean swap = false;
 	private String message = "";
 	private int Score = 0;
-	
+	private String weaponName = "basic";
+	private boolean weaponswap = false;
 	private boolean waitingOnKeyPress = true;
 	// control trackers?
 	private boolean leftKeyPressed = false;
@@ -55,7 +58,8 @@ public class gameManager extends Canvas{
 	private boolean fireKeyPressed = false;
 	// this becomes true if we need to update game state this loop
 	private boolean logicThisLoop = false;
-	
+	private HashMap<Integer, String> PowerUpPoints = new HashMap<Integer, String>();
+	private HashMap<String, Integer> fireRates = new HashMap<String, Integer>();
 	// end private variables
 	
 	// begin construction
@@ -102,6 +106,14 @@ public class gameManager extends Canvas{
 		
 		// method call to set up all the active entities at the start
 		initEntities();
+		// our temportary hashmap to help manage powerups
+		PowerUpPoints.put(30, "double");
+		fireRates.put("double", 250);
+		//PowerUpPoints.put(70, "missle");
+		//fireRates.put("missle", 550);
+		
+		
+		
 	}
 		// fresh game start
 	private void startGame(){
@@ -125,7 +137,7 @@ public class gameManager extends Canvas{
 		foeCount = 0;
 		for(int i = 0; i < 5; i++){
 			for(int j = 0; j < 12; j++){
-				Entity foe = new AlienEntity(this, "sprites/alien.gif", 100+(j*50),(50)+i*30);
+				Entity foe = new AlienEntity(this, "sprites/alien.gif", 100+(j*50),(50)+i*30, new Random().nextInt(1000));
 				entities.add(foe);
 				foeCount++;
 			}
@@ -136,6 +148,18 @@ public class gameManager extends Canvas{
 	public void updateLogic(){
 		logicThisLoop = true;
 	}
+	public Entity randoAlien(){
+		Random rand = new Random();
+		boolean has = false;
+		int i =0;
+		while (!has){
+			i = rand.nextInt(entities.size());
+			if(entities.get(i) instanceof AlienEntity)
+				has = true;
+		}
+		return (Entity)entities.get(i);
+	}
+		
 		
 	public void removeEntity(Entity entity){
 		removeThese.add(entity);
@@ -149,7 +173,7 @@ public class gameManager extends Canvas{
 		message = "Flawless victory";
 		waitingOnKeyPress = true;
 	}
-		
+	
 	public void notifyAlienKilled(){
 		foeCount--;
 		Score++;
@@ -160,42 +184,70 @@ public class gameManager extends Canvas{
 		for(int i = 0; i < entities.size(); i++){
 			Entity entity = (Entity)entities.get(i);
 			if(entity instanceof AlienEntity){
-				entity.setHorizontalMovement(entity.getHorizontalMovement()*1.02);
+				AlienEntity t = (AlienEntity)entities.get(i);
+				t.setHorizontalMovement(t.getHorizontalMovement()*1.02);	
+			t.fireRate = t.fireRate--;	
 			}
+		}
+	}
+	public void alienFire(AlienEntity alien){
+		double tX = alien.x+alien.getWidth()/2;
+		double tY = alien.y+10;
+		Entity shot = new AlienBeam(this, tX, tY);
+		entities.add(shot);
+		alien.previousFire = System.currentTimeMillis();
+		//System.out.println("shots fired");
+	}
+
+	public void tryToFire(){
+		if(System.currentTimeMillis() - lastFire < equipedFireRate){
+			return;
+		}
+		// get behavior from weapon
+		// how?
+		// we need to calculate / determine the relevant information first
+		// shot entity needs a game manager, sprite, x and y to spawn
+		// x and y based off ship position
+		// for certain shots, pass in aditional params to modify their position
+		// write more methods to change their behavior
+		
+		// use ifs to check weapon type
+		double tempX = (ship.x+ship.getWidth()/2); 
+		double tempY = ship.y-20;
+		if(weaponName.equals("basic")){
+			// spawn basic shot
+			// modify tempx and demp y for where they spawn
+			// they are the top corner of the ship atm
+			Entity shot = new ShotEntity(this, tempX, tempY);
+			entities.add(shot);
+			lastFire = System.currentTimeMillis();
+		}
+		else if(weaponName.equals("double")){
+			// the doubble double
+			// fires from twice as fast
+			// alterbating sides of the ship
+			if(swap){
+				tempX = ship.x;
+				Entity shot = new doubleShot(this, tempX, tempY);
+				entities.add(shot);
+				lastFire = System.currentTimeMillis();
+				swap = false;
+			}
+			else{
+				tempX = ship.x+ship.getWidth()-10;
+				Entity shot = new doubleShot(this, tempX, tempY);
+				entities.add(shot);
+				lastFire = System.currentTimeMillis();
+				swap = true;
+			}
+		}
+		else if(weaponName.equals("missle")){
+			Entity shot = new missle(this, tempX, tempY, randoAlien());
+			entities.add(shot);
+			lastFire = System.currentTimeMillis();
 		}
 	}
 		
-	// attempt to have the palyer fire a shot. modify this to be based off weapon type later
-	public void tryToFire(){
-		if(Score < 5){
-			// check that fier CD is exhausted
-			if(System.currentTimeMillis() - lastFire < fireRate){
-				return;
-			}
-			lastFire = System.currentTimeMillis();
-			ShotEntity shot = new ShotEntity(this, "sprites/shot.gif", ship.getX()+10, ship.getY()-30);
-			
-			entities.add(shot);
-		}
-		else{
-			// check double shot times
-			if((System.currentTimeMillis() - lastFire)*2 < fireRate){
-				return;
-			}
-			ShotEntity shot;
-			lastFire = System.currentTimeMillis();
-			if(side){
-				side = false;
-				shot = new ShotEntity(this, "sprites/shot.gif", ship.getX()+20, ship.getY()-30);
-			}
-			else{
-				side = true;
-				shot = new ShotEntity(this, "sprites/shot.gif", ship.getX(), ship.getY()-30);
-			}
-			entities.add(shot);
-		}
-
-	}
 		
 	// primary game loop
 	public void gameLoop(){
@@ -214,7 +266,19 @@ public class gameManager extends Canvas{
 
 			// adding score display here
 			g.setColor(Color.orange);
-			g.drawString("Score: "+Score,400-g.getFontMetrics().stringWidth(message)/2, 40);	
+			g.drawString("Score: "+Score,400-g.getFontMetrics().stringWidth(message)/2, 40);
+			//do check to see if we need to change weapons here
+			ShipEntity t = (ShipEntity)ship;
+				int red = 4*(100- t.shields);
+				if(red >255)
+					red = 255;
+				int green = 255-3*(100-t.shields);
+				if(green < 0 )
+					green = 0;
+				g.setColor(new Color(red,green, 0));
+				g.fillRect(775, 595 - t.shields*6,20, t.shields*6-3);
+						
+				
 			// move the things
 			if(!waitingOnKeyPress){
 				for(int i = 0; i < entities.size(); i++){
@@ -260,6 +324,14 @@ public class gameManager extends Canvas{
 					Entity entity = (Entity)entities.get(i);
 					entity.doLogic();
 				}
+				for(int i = 0; i < entities.size(); i++){
+					if(entities.get(i) instanceof AlienEntity){
+						AlienEntity temp = (AlienEntity)entities.get(i);
+						if(temp.canFire(System.currentTimeMillis())){
+							alienFire(temp);
+						}
+					}
+				}
 				logicThisLoop = false;
 			}
 			// while waiting on input
@@ -286,16 +358,26 @@ public class gameManager extends Canvas{
 			
 			// attempt to fire
 			if(fireKeyPressed){
-				tryToFire();
+				tryToFire();	
 			}
 				
 			// wait to control processor load
 			// slopy implementation
 			// look up better ways to do this
+			//
+			//
+			// this is where we decide if to swap weapons, adn to what
+		/*
 			try{
 				Thread.sleep(10);
 			}
 			catch(Exception e){}
+		*/
+			// check weapon status
+			if(PowerUpPoints.get(Score) !=null){
+				weaponName = PowerUpPoints.get(Score);
+				equipedFireRate = fireRates.get(weaponName);
+			}
 		}
 	}
 		
@@ -308,16 +390,17 @@ public class gameManager extends Canvas{
 			// this is where we are defineing the controls
 			// as more are added, or changed, this is where that eventuallu
 			// must be reflected
-			if(e.getKeyCode() == KeyEvent.VK_LEFT){
+			if(e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A){
 				leftKeyPressed = true;
 			}
-			if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+			if(e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D){
 				rightKeyPressed = true;
 			}
 			if(e.getKeyCode() == KeyEvent.VK_SPACE){
 				fireKeyPressed = true;		
 			}
 		}
+	
 			
 		// key released
 		public void keyReleased(KeyEvent e){
@@ -327,15 +410,15 @@ public class gameManager extends Canvas{
 				
 			// as above, this is where the unpressed controls are delt with
 			// one entry for every control
-			if(e.getKeyCode() == KeyEvent.VK_LEFT){
+			if(e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A){
 				leftKeyPressed = false;
 			}
-			if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+			if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D){
 				rightKeyPressed = false;
 			}
 			if(e.getKeyCode() == KeyEvent.VK_SPACE){
 				fireKeyPressed = false;
-			}
+		}
 				
 		}
 			
@@ -364,6 +447,34 @@ public class gameManager extends Canvas{
 		gameManager g = new gameManager();
 		// use args here to specify how to build the level later
 		// also pass in ship detaisl
+		
+		BufferStrategy strategy = g.strategy;		
+		Graphics2D L = (Graphics2D) strategy.getDrawGraphics();
+                L.setColor(Color.black);
+                L.fillRect(0,0,800,600);
+		L.dispose();
+		strategy.show();
+
+		for(int i = 0; i < 100; i ++){
+			
+			Graphics2D r = (Graphics2D) strategy.getDrawGraphics();
+			r.setColor(Color.blue);
+
+			r.fillRect(350, 300, i, 20);	
+			r.setColor(Color.black);
+			r.fillRect(0, 0, 600, 310);
+			r.setColor(Color.white);
+			r.drawString("Loading "+i +"%",400-r.getFontMetrics().stringWidth("Loading"+i+"%")/2,300);
+
+			r.dispose();
+			strategy.show();
+	
+			try{
+				Thread.sleep(70);
+			}
+			catch(Exception e){}
+		}
+
 		g.gameLoop();
 	}
 }	

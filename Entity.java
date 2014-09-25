@@ -59,6 +59,10 @@ public abstract class Entity{
 	public double getY(){
 		return y;
 	}
+	// get the width of a sprite from its entity object.
+	public double getWidth(){
+		return sprite.getWidth();
+	}
 	
 	//IMPORTANT COLLISION DETECTION HERE
 	public boolean collidesWith(Entity other){
