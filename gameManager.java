@@ -109,8 +109,8 @@ public class gameManager extends Canvas{
 		// our temportary hashmap to help manage powerups
 		PowerUpPoints.put(30, "double");
 		fireRates.put("double", 250);
-		//PowerUpPoints.put(70, "missle");
-		//fireRates.put("missle", 550);
+		PowerUpPoints.put(70, "missle");
+		fireRates.put("missle", 550);
 		
 		
 		
