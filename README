@@ -1,0 +1,35 @@
+Space invaders
+
+A Java based space invaders game.
+
+Java based graphics ahve always been a little mystifying to me, so on a whim, this semester I diceide to implement a game using Java to try and develop those skills a bit. 
+To that end, I located a tutorial for space invaders online to get a handle on the basic graphic opperations. 
+Once the base game was implemented, I began to expand it. 
+I added powerups first, which changes your weapon's behavior based on your score. 
+Currently, a basic weapon, double shot, and missle weapon are implemented. 
+
+Next, I modified the aliens to fire back. Each alien fires based on its won internal offsets, randomly generated on their creation. 
+
+Finally, I added a shields system, so that taking damage is no longer an instant game over. 
+The shield bar collor grows more red based on how much shield you have left. Red = low shield strength
+
+Planned features:
+        more powerups
+        powerups drop from destroyed aliens
+        change to level layout:
+            instead of spawning in blocks of aliens, waves are spawned with 3 - 5 aliens each
+            aliens then have health, and more complex behaviors
+            levels culminate in a large boss
+        add backround texture to the levesl
+        make background texture scroll
+        develop level loader to build levels upon game start
+        implement UI to tidy up some of the clunky elements such as text and shields
+        between - mission UI to select "flavor" of mission  - diferent muissions have different rewards and risks
+
+Useage:  
+            java gameManager
+
+Special thanks to
+                     http://www.cokeandcode.com/info/tut2d.html 
+
+the source for the graphics tutorial that I used to get started on this project.
