@@ -144,10 +144,11 @@ public class gameManager extends Canvas{
 		}
 	}
 		
-	// notification that logic needs updating, in response to soem event
+	// notification that logic needs updating, in response to some event
 	public void updateLogic(){
 		logicThisLoop = true;
 	}
+    // returns a random alien from the entity list. using this for the alien shot firing.
 	public Entity randoAlien(){
 		Random rand = new Random();
 		boolean has = false;
@@ -160,7 +161,7 @@ public class gameManager extends Canvas{
 		return (Entity)entities.get(i);
 	}
 		
-		
+	// at end of each game iteration, remove destroyed aliens and spent shots	
 	public void removeEntity(Entity entity){
 		removeThese.add(entity);
 	}
@@ -200,6 +201,7 @@ public class gameManager extends Canvas{
 	}
 
 	public void tryToFire(){
+        // can only fire so fast
 		if(System.currentTimeMillis() - lastFire < equipedFireRate){
 			return;
 		}
@@ -225,7 +227,7 @@ public class gameManager extends Canvas{
 		else if(weaponName.equals("double")){
 			// the doubble double
 			// fires from twice as fast
-			// alterbating sides of the ship
+			// alternating sides of the ship
 			if(swap){
 				tempX = ship.x;
 				Entity shot = new doubleShot(this, tempX, tempY);
@@ -388,7 +390,7 @@ public class gameManager extends Canvas{
 				return;
 			}
 			// this is where we are defineing the controls
-			// as more are added, or changed, this is where that eventuallu
+			// as more are added, or changed, this is where that eventually
 			// must be reflected
 			if(e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_A){
 				leftKeyPressed = true;
